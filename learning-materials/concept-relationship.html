@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>概念关系：Agent × 上下文 × Skill</title>
+<style>
+  :root { --ink:#1a2332; --sub:#5a6a7e; --line:#e3e8ef; --brand:#6d28d9; --soft:#f6f3ff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; color:var(--ink); background:#fafbfd; line-height:1.75; }
+  .wrap { max-width:900px; margin:0 auto; padding:32px 20px 80px; }
+  header.hero { background:linear-gradient(135deg,#6d28d9,#4c1d95); color:#fff; border-radius:14px; padding:36px 32px; margin-bottom:24px; }
+  header.hero h1 { font-size:28px; margin-bottom:8px; }
+  header.hero p { opacity:.92; font-size:15px; }
+  section { background:#fff; border:1px solid var(--line); border-radius:12px; padding:26px 28px; margin-bottom:22px; }
+  h2 { font-size:21px; margin-bottom:14px; padding-left:12px; border-left:4px solid var(--brand); }
+  h3 { font-size:16px; margin:16px 0 8px; }
+  p, li { font-size:15px; }
+  ul, ol { padding-left:22px; margin:8px 0; }
+  .card { background:var(--soft); border-radius:8px; padding:14px 16px; margin:10px 0; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top; }
+  th { background:var(--soft); }
+  .diagram { background:var(--soft); border-radius:8px; padding:20px; margin:14px 0; text-align:center; }
+  .personal { background:#fffbea; border:1px solid #f5e08a; border-radius:10px; padding:18px 20px; }
+  .blank { color:var(--sub); font-style:italic; }
+  footer { text-align:center; color:var(--sub); font-size:13px; margin-top:30px; }
+  a { color:var(--brand); }
+  .pill-a { color:#2563eb; font-weight:700; } .pill-c { color:#0f766e; font-weight:700; } .pill-s { color:#b45309; font-weight:700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>三个概念如何咬合：<span class="pill-a" style="color:#c7d2fe">Agent</span> · <span style="color:#99f6e4">上下文</span> · <span style="color:#fde68a">Skill</span></h1>
+  <p>个人学习资料 · 由 learning-material-generator 生成 · 2026-09-10 · Markdown 版：concept-relationship.md</p>
+</header>
+
+<section>
+  <h2>结论先行</h2>
+  <div class="card">
+    <span class="pill-c">上下文</span> 是<b>工作内存</b>——模型一次推理能看到的全部信息；<br>
+    <span class="pill-a">Agent</span> 是<b>执行系统</b>——在这块内存上用"感知→思考→行动→观察"的循环干活的系统；<br>
+    <span class="pill-s">Skill</span> 是<b>知识包</b>——按需注入内存的专家 SOP，平时不占内存，任务匹配时才加载。
+  </div>
+</section>
+
+<section>
+  <h2>全景图</h2>
+  <div class="diagram">
+    <svg viewBox="0 0 760 300" width="100%" style="max-width:740px" font-family="Microsoft YaHei">
+      <defs><marker id="m" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#6d28d9"/></marker></defs>
+      <!-- Agent loop -->
+      <text x="120" y="30" font-size="15" font-weight="bold" fill="#2563eb">Agent 循环</text>
+      <g font-size="13">
+        <rect x="30"  y="50" width="90" height="42" rx="9" fill="#dbeafe" stroke="#2563eb"/><text x="75"  y="76" text-anchor="middle">感知</text>
+        <rect x="140" y="50" width="100" height="42" rx="9" fill="#dbeafe" stroke="#2563eb"/><text x="190" y="76" text-anchor="middle">思考/规划</text>
+        <rect x="260" y="50" width="90" height="42" rx="9" fill="#dbeafe" stroke="#2563eb"/><text x="305" y="76" text-anchor="middle">行动</text>
+        <rect x="85"  y="130" width="110" height="42" rx="9" fill="#dbeafe" stroke="#2563eb"/><text x="140" y="156" text-anchor="middle">观察结果</text>
+        <line x1="120" y1="71" x2="138" y2="71" stroke="#2563eb" stroke-width="2" marker-end="url(#m)"/>
+        <line x1="240" y1="71" x2="258" y2="71" stroke="#2563eb" stroke-width="2" marker-end="url(#m)"/>
+        <path d="M305,92 C305,130 195,140 197,145" fill="none" stroke="#2563eb" stroke-width="2" marker-end="url(#m)"/>
+        <path d="M85,151 C40,151 30,110 45,95" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#m)"/>
+      </g>
+      <!-- Context -->
+      <text x="415" y="30" font-size="15" font-weight="bold" fill="#0f766e">上下文窗口（工作内存）</text>
+      <rect x="390" y="45" width="200" height="150" rx="12" fill="#ccfbf1" stroke="#0f766e" stroke-width="2"/>
+      <g font-size="13">
+        <rect x="410" y="62"  width="160" height="30" rx="6" fill="#fff" stroke="#99e5d8"/><text x="490" y="82" text-anchor="middle">系统提示</text>
+        <rect x="410" y="100" width="160" height="30" rx="6" fill="#fff" stroke="#99e5d8"/><text x="490" y="120" text-anchor="middle">对话 / 观察历史</text>
+        <rect x="410" y="138" width="160" height="30" rx="6" fill="#fef3c7" stroke="#d97706"/><text x="490" y="158" text-anchor="middle" fill="#b45309">← Skill 注入的指令</text>
+      </g>
+      <!-- Skill -->
+      <text x="665" y="225" text-anchor="middle" font-size="15" font-weight="bold" fill="#b45309">Skill 库（SOP 手册）</text>
+      <g font-size="13">
+        <rect x="620" y="240" width="110" height="34" rx="8" fill="#fde68a" stroke="#b45309"/><text x="675" y="262" text-anchor="middle">SKILL.md ×N</text>
+      </g>
+      <!-- arrows -->
+      <path d="M240,71 C300,71 340,95 388,105" fill="none" stroke="#0f766e" stroke-width="2.5" marker-end="url(#m)"/>
+      <text x="315" y="86" font-size="12" fill="#0f766e">读内存决策</text>
+      <path d="M195,172 C280,200 330,190 388,170" fill="none" stroke="#0f766e" stroke-width="2.5" marker-end="url(#m)"/>
+      <text x="255" y="205" font-size="12" fill="#0f766e">观察写回内存</text>
+      <path d="M620,250 C500,240 470,210 490,198" fill="none" stroke="#b45309" stroke-width="2.5" stroke-dasharray="6 4" marker-end="url(#m)"/>
+      <text x="548" y="243" font-size="12" fill="#b45309">任务匹配时加载</text>
+    </svg>
+  </div>
+  <p style="text-align:center;color:var(--sub);font-size:13px">读图：Agent 的每次"思考"从上下文读取信息，"观察"把结果写回上下文；Skill 不参与循环，只在任务匹配时把专业知识注入上下文。</p>
+</section>
+
+<section>
+  <h2>上下文如何影响 Agent 的工作</h2>
+  <ol>
+    <li><b>决定"知道什么"：</b>目标、环境、工具结果全在上下文里——缺信息，"思考"就是无米之炊。</li>
+    <li><b>决定"记得什么"：</b>多轮循环靠历史写回上下文；窗口有限，长任务必须做摘要压缩与外置笔记。</li>
+    <li><b>决定"像谁"：</b>系统提示框定角色与边界（高风险需人工确认等），直接约束 Agent 的自主范围。</li>
+  </ol>
+</section>
+
+<section>
+  <h2>Skill 如何补足上下文</h2>
+  <p>没有 Skill 时，上下文只有两个来源：写死的系统提示、临时的对话内容。Skill 提供第三条路——<b>按需注入的专家知识</b>：</p>
+  <table>
+    <tr><th>方式</th><th>注入时机</th><th>适合内容</th><th>代价</th></tr>
+    <tr><td>系统提示</td><td>每次请求</td><td>角色与硬规则</td><td>常驻占 token</td></tr>
+    <tr><td>对话描述</td><td>当次对话</td><td>临时需求</td><td>重复劳动，易遗漏</td></tr>
+    <tr><td><b>Skill</b></td><td><b>任务匹配时</b></td><td><b>可复用的流程与知识</b></td><td><b>平时近零，触发时精准</b></td></tr>
+  </table>
+</section>
+
+<section>
+  <h2>一个容易忽视的连接点</h2>
+  <div class="card">
+    Skill 的<b>触发机制本身依赖上下文质量</b>：description 要与"用户此刻的说法"在语义上对得上才会被加载。所以"上下文工程"不只是塞资料——<b>让正确的知识在正确的时机"被看见"，本身就是一项核心能力。</b>同理，Agent 循环里每轮观察怎么写回上下文（全文 or 摘要），直接决定下一轮决策的质量。
+  </div>
+</section>
+
+<section class="personal">
+  <h2>个人理解（由学习者填写）</h2>
+  <p><b>我的理解（2026-09-10）：</b><span class="blank">待填写——我原先以为三个概念是并列关系，现在认为更像：______；最意外的一点：______。</span></p>
+  <p><b>自问自答：</b>窗口已经很大（200K+），还需要 Skill 这种"省着用"的设计吗？我的初步答案：<span class="blank">需要——瓶颈不只是容量，还有注意力分配（lost in the middle）与成本；核心不是"塞得多"，而是"该出现时才出现"。</span></p>
+</section>
+
+<footer>learning-material-generator · 概念关系 · 相关资料：<a href="agent.html">Agent</a> · <a href="llm-context.html">上下文</a> · <a href="skill.html">Skill</a></footer>
+</div>
+</body>
+</html>

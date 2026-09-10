@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习资料：Skill（技能包）</title>
+<style>
+  :root { --ink:#1a2332; --sub:#5a6a7e; --line:#e3e8ef; --brand:#b45309; --soft:#fdf6ec; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; color:var(--ink); background:#fafbfd; line-height:1.75; }
+  .wrap { max-width:860px; margin:0 auto; padding:32px 20px 80px; }
+  header.hero { background:linear-gradient(135deg,#b45309,#92400e); color:#fff; border-radius:14px; padding:36px 32px; margin-bottom:24px; }
+  header.hero h1 { font-size:30px; margin-bottom:8px; }
+  header.hero p { opacity:.92; font-size:15px; }
+  nav.toc { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-bottom:28px; font-size:14px; }
+  nav.toc a { color:var(--brand); text-decoration:none; margin-right:16px; white-space:nowrap; line-height:2; }
+  section { background:#fff; border:1px solid var(--line); border-radius:12px; padding:26px 28px; margin-bottom:22px; }
+  h2 { font-size:21px; margin-bottom:14px; padding-left:12px; border-left:4px solid var(--brand); }
+  h3 { font-size:16px; margin:16px 0 8px; }
+  p, li { font-size:15px; }
+  ul, ol { padding-left:22px; margin:8px 0; }
+  .card { background:var(--soft); border-radius:8px; padding:14px 16px; margin:10px 0; }
+  .analogy { border-left:4px solid #8b5cf6; background:#f6f3ff; padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; }
+  .keys span { display:inline-block; background:#f7e8d0; color:var(--brand); border-radius:999px; padding:3px 12px; margin:4px 6px 0 0; font-size:13px; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top; }
+  th { background:var(--soft); }
+  pre { background:#1e293b; color:#e2e8f0; border-radius:8px; padding:14px 16px; font-size:13px; overflow-x:auto; margin:10px 0; line-height:1.6; }
+  code { font-family:Consolas,monospace; }
+  .wrong { color:#b91c1c; font-weight:600; }
+  .right { color:#047857; font-weight:600; }
+  .quiz { border:1px dashed #e3c9a0; border-radius:10px; padding:16px 18px; margin:12px 0; }
+  .quiz summary { cursor:pointer; font-weight:600; color:var(--brand); }
+  .refs li { margin:8px 0; }
+  .ref-note { color:var(--sub); font-size:13px; }
+  .personal { background:#fffbea; border:1px solid #f5e08a; border-radius:10px; padding:18px 20px; }
+  .blank { color:var(--sub); font-style:italic; }
+  footer { text-align:center; color:var(--sub); font-size:13px; margin-top:30px; }
+  .en { color:var(--sub); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Skill <span style="font-size:18px;opacity:.85">（AI 技能包）</span></h1>
+  <p>个人学习资料 · 由 learning-material-generator 生成 · 2026-09-10</p>
+</header>
+
+<nav class="toc">
+  <a href="#goals">学习目标</a><a href="#core">核心概念</a><a href="#mech">机制原理</a><a href="#scene">应用场景</a><a href="#pitfalls">常见误区</a><a href="#quiz">自测题</a><a href="#refs">参考资料</a><a href="#me">个人理解</a>
+</nav>
+
+<section id="goals">
+  <h2>学习目标</h2>
+  <p>学完本页，你应该能够：</p>
+  <ol>
+    <li><b>能说出</b>Skill 的定义和它解决的 core 矛盾（模型能力通用 vs 具体任务需要专门知识）</li>
+    <li><b>能写出</b>一个合法 SKILL.md 的最小结构（YAML frontmatter 的 name/description + 正文指令）</li>
+    <li><b>能解释</b>"按需加载 / 渐进式披露"为什么是 Skill 的关键设计</li>
+    <li><b>能区分</b>Skill、提示词片段、MCP 插件三者的边界</li>
+    <li><b>能判断</b>一个 description 写得好不好，并说明它如何影响 Skill 是否被触发</li>
+  </ol>
+</section>
+
+<section id="core">
+  <h2>核心概念</h2>
+  <div class="card">
+    <b>一句话定义：</b>Skill 是一个以 <code>SKILL.md</code>（含 YAML 元数据）为核心、可附带脚本与资源文件的<b>知识/流程打包格式</b>——把"某类任务该怎么做"写成结构化文档，让 AI 在<b>需要时自动发现并加载</b>，按里面的流程执行。
+  </div>
+  <div class="analogy">
+    💡 <b>类比：</b>Skill 像"岗位 SOP 手册"。新员工（模型）通用能力很强，但你公司报销怎么走、周报用什么格式，它不知道。把流程写成手册放进柜子（skills 目录），并在目录索引上写清"什么情况翻这本"（description），员工遇到对应任务就会取出来照着做。
+  </div>
+  <h3>关键词</h3>
+  <div class="keys"><span>SKILL.md</span><span>YAML frontmatter</span><span>按需加载</span><span>渐进式披露</span><span>流程沉淀</span><span>可复用</span></div>
+</section>
+
+<section id="mech">
+  <h2>机制原理</h2>
+  <ol>
+    <li><b>打包：</b>每个 Skill 是一个文件夹，核心是 <code>SKILL.md</code>：头部 YAML 写 <code>name</code>（唯一名称）和 <code>description</code>（何时使用），正文写适用场景、输入、步骤、输出结构、约束、质检要求。可附带脚本、模板等资源。</li>
+    <li><b>发现：</b>AI 助手启动时不读取全部正文，只读每个 Skill 的 name + description——相当于只看"书脊"。这保证 Skill 多了也不会撑爆上下文。</li>
+    <li><b>触发：</b>用户请求与某个 description 匹配时（如"帮我做周报"匹配上周报 Skill），该 Skill 的正文才被完整加载进上下文。</li>
+    <li><b>执行：</b>模型按正文的步骤、约束和输出格式执行任务；引用的脚本/资源文件按需读取。</li>
+    <li><b>两级存放：</b>用户级（<code>~/.workbuddy/skills/</code>，跨项目可用）；项目级（<code>&lt;仓库&gt;/.workbuddy/skills/</code>，随仓库共享给团队）——本仓库用的就是项目级。</li>
+  </ol>
+  <div class="card">✅ <b>渐进式披露（Progressive Disclosure）是灵魂：</b>平时只占几十 token 的索引，任务到来时才加载全文。既让专业知识"随叫随到"，又不浪费上下文预算。</div>
+</section>
+
+<section id="scene">
+  <h2>应用场景：把"周报格式"沉淀成 Skill</h2>
+  <p>没有 Skill 时：每周写周报都要重新描述格式、口径、要包含的项目——说漏一次就返工一次。</p>
+  <table>
+    <tr><th>步骤</th><th>操作</th></tr>
+    <tr><td>① 沉淀</td><td>写 weekly-report/SKILL.md：description 写"当用户要求写/整理周报时使用"；正文定义输入（本周事项列表）、步骤（按项目分组→标注进度与风险→生成表格）、输出结构、质检项（数字必须来自用户提供的原始记录）</td></tr>
+    <tr><td>② 使用</td><td>以后只需说"帮我写这周的周报，事项如下：……"，Skill 自动触发</td></tr>
+    <tr><td>③ 迭代</td><td>发现漏了"下周计划"栏目？直接改 SKILL.md——一次修改，永久生效</td></tr>
+  </table>
+  <p>本质：<b>把"每次都要口头交代"的个人经验，变成"一次编写、持续复用、随仓库共享"的组织资产。</b></p>
+</section>
+
+<section id="pitfalls">
+  <h2>常见误区与辨析</h2>
+  <table>
+    <tr><th style="width:45%">误区</th><th>正确理解</th></tr>
+    <tr>
+      <td><span class="wrong">Skill 就是一段高级提示词</span></td>
+      <td><span class="right">提示词是"当次对话有效"；Skill 是结构化、持久化、可被发现和复用的资产</span>——有元数据索引、有固定的质量约束（frontmatter 合法性、质检清单），还能附带可执行脚本，且可以随 Git 仓库版本管理与共享。</td>
+    </tr>
+    <tr>
+      <td><span class="wrong">Skill = 插件 / MCP</span></td>
+      <td><span class="right">MCP 连接外部系统提供"能力"（调 API、查数据库）；Skill 提供"知识与流程"（怎么做好某类任务）。</span>Skill 纯文档也能生效，不需要任何外部服务；二者常配合使用——MCP 给工具，Skill 教用法。</td>
+    </tr>
+    <tr>
+      <td><span class="wrong">Skill 写完就一定会被触发</span></td>
+      <td><span class="right">触发靠 description 匹配。</span>description 含糊（如"很有用的助手"）→ 永远不触发；清晰写出触发场景和关键词 → 才能在正确时机被选中。写完必须实测。</td>
+    </tr>
+  </table>
+</section>
+
+<section id="quiz">
+  <h2>自测题</h2>
+  <div class="quiz"><details><summary>Q1：写出 SKILL.md 头部必须包含的两个 YAML 字段，并说明各自作用。</summary>
+    <p><b>参考答案：</b><code>name</code>：Skill 的唯一名称，用于索引和调用；<code>description</code>：描述"这个 Skill 是干什么的、什么时候该用它"，是触发匹配的唯一依据。</p>
+    <p class="ref-note">答错说明：如果只答了 name，说明忽略了"发现机制"依赖 description——回到「机制原理」第 2、3 步。</p></details></div>
+  <div class="quiz"><details><summary>Q2：为什么 Skill 正文平时不加载、只在触发时加载？这种设计叫什么？</summary>
+    <p><b>参考答案：</b>叫渐进式披露 / 按需加载。平时只读 name+description（几十 token），保护有限的上下文窗口；触发后才加载全文执行。若全部常驻，Skill 一多上下文就会被指令淹没，挤压真正的工作内容。</p></details></div>
+  <div class="quiz"><details><summary>Q3：你想让 AI 每次都按团队规范做代码评审。提示词、Skill、MCP 三种方案怎么选？</summary>
+    <p><b>参考答案：</b>选 Skill：评审规范是"知识+流程"（检查清单、输出格式），需要持久化、可复用、随仓库共享——正是 Skill 的形态。提示词每次粘贴不可持续；MCP 适合"需要连接外部系统"的场景（如拉取 PR diff 的工具），与规范本身互补但不互替。</p></details></div>
+  <div class="quiz"><details><summary>Q4：一个 Skill 从未被触发过，最可能的原因是什么？如何排查？</summary>
+    <p><b>参考答案：</b>大概率是 description 写得含糊或与用户表述不匹配。排查：① 对照用户的实际说法检查 description 是否含对应关键词/场景；② 直接点名 Skill 测试能否加载；③ 修改 description 后重新实测。</p></details></div>
+</section>
+
+<section id="refs">
+  <h2>参考资料</h2>
+  <ul class="refs">
+    <li><a href="https://codebuddy.ai/docs/skills/overview">CodeBuddy / WorkBuddy Skills 文档</a> —— <span class="ref-note">SKILL.md 格式、用户级与项目级存放位置的权威说明</span></li>
+    <li><a href="https://www.anthropic.com/news/skills">Anthropic：Introducing Agent Skills</a> —— <span class="ref-note">Skill 概念与渐进式披露设计的出处</span></li>
+    <li><a href="https://modelcontextprotocol.io/">Model Context Protocol (MCP)</a> —— <span class="ref-note">对比学习：MCP 与 Skill 的分工边界</span></li>
+  </ul>
+</section>
+
+<section id="me" class="personal">
+  <h2>个人理解（由学习者填写）</h2>
+  <p><b>我的理解（2026-09-10）：</b><span class="blank">待填写：你最想把哪个"每次都要重复交代"的流程做成 Skill？……</span></p>
+  <p><b>我还没想明白的问题：</b><span class="blank">例如：多个 Skill 的 description 都匹配时，系统如何选择？会不会互相干扰？</span></p>
+</section>
+
+<footer>learning-material-generator · 概念：Skill · 生成后请人工核对并补写个人理解</footer>
+</div>
+</body>
+</html>

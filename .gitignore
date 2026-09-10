@@ -1,0 +1,25 @@
+# ---- 敏感信息（本作业要求：不得上传）----
+.env
+.env.*
+*.key
+*secret*
+*token*
+credentials*.json
+
+# ---- AI 工具本地状态（与作业内容无关）----
+.workbuddy/memory/
+.workbuddy/*.json
+.claude/
+*.local
+
+# ---- 系统与编辑器杂物 ----
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+*.tmp
+*.bak
+
+# ---- 临时目录 ----
+tmp/
+tmp_slices/

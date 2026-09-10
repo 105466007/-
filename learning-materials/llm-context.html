@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习资料：大模型的上下文（Context）</title>
+<style>
+  :root { --ink:#1a2332; --sub:#5a6a7e; --line:#e3e8ef; --brand:#0f766e; --soft:#f2faf8; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; color:var(--ink); background:#fafbfd; line-height:1.75; }
+  .wrap { max-width:860px; margin:0 auto; padding:32px 20px 80px; }
+  header.hero { background:linear-gradient(135deg,#0f766e,#115e59); color:#fff; border-radius:14px; padding:36px 32px; margin-bottom:24px; }
+  header.hero h1 { font-size:30px; margin-bottom:8px; }
+  header.hero p { opacity:.92; font-size:15px; }
+  nav.toc { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-bottom:28px; font-size:14px; }
+  nav.toc a { color:var(--brand); text-decoration:none; margin-right:16px; white-space:nowrap; line-height:2; }
+  section { background:#fff; border:1px solid var(--line); border-radius:12px; padding:26px 28px; margin-bottom:22px; }
+  h2 { font-size:21px; margin-bottom:14px; padding-left:12px; border-left:4px solid var(--brand); }
+  h3 { font-size:16px; margin:16px 0 8px; }
+  p, li { font-size:15px; }
+  ul, ol { padding-left:22px; margin:8px 0; }
+  .card { background:var(--soft); border-radius:8px; padding:14px 16px; margin:10px 0; }
+  .analogy { border-left:4px solid #8b5cf6; background:#f6f3ff; padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; }
+  .keys span { display:inline-block; background:#d9f0ec; color:var(--brand); border-radius:999px; padding:3px 12px; margin:4px 6px 0 0; font-size:13px; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top; }
+  th { background:var(--soft); }
+  .wrong { color:#b91c1c; font-weight:600; }
+  .right { color:#047857; font-weight:600; }
+  .diagram { background:var(--soft); border-radius:8px; padding:18px; margin:14px 0; text-align:center; }
+  .quiz { border:1px dashed #b8d8d1; border-radius:10px; padding:16px 18px; margin:12px 0; }
+  .quiz summary { cursor:pointer; font-weight:600; color:var(--brand); }
+  .refs li { margin:8px 0; }
+  .ref-note { color:var(--sub); font-size:13px; }
+  .personal { background:#fffbea; border:1px solid #f5e08a; border-radius:10px; padding:18px 20px; }
+  .blank { color:var(--sub); font-style:italic; }
+  footer { text-align:center; color:var(--sub); font-size:13px; margin-top:30px; }
+  .en { color:var(--sub); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>大模型的上下文 <span style="font-size:18px;opacity:.85">（Context / Context Window）</span></h1>
+  <p>个人学习资料 · 由 learning-material-generator 生成 · 2026-09-10</p>
+</header>
+
+<nav class="toc">
+  <a href="#goals">学习目标</a><a href="#core">核心概念</a><a href="#mech">机制原理</a><a href="#scene">应用场景</a><a href="#pitfalls">常见误区</a><a href="#quiz">自测题</a><a href="#refs">参考资料</a><a href="#me">个人理解</a>
+</nav>
+
+<section id="goals">
+  <h2>学习目标</h2>
+  <p>学完本页，你应该能够：</p>
+  <ol>
+    <li><b>能说出</b>上下文的构成（系统提示、对话历史、检索内容、工具结果）和上下文窗口的限制</li>
+    <li><b>能区分</b>"上下文"与"记忆"、"上下文"与"微调"三者的边界</li>
+    <li><b>能解释</b>为什么上下文窗口大 ≠ 记得住一切（lost in the middle 现象）</li>
+    <li><b>能举例</b>说明一次多轮对话中上下文是如何被填充和消耗的</li>
+    <li><b>能提出</b>至少两种应对上下文不够用的实用策略</li>
+  </ol>
+</section>
+
+<section id="core">
+  <h2>核心概念</h2>
+  <div class="card">
+    <b>一句话定义：</b>上下文（Context）是大模型在<b>一次推理中能看到的所有信息</b>——包括系统提示、全部对话历史、检索到的资料和工具返回结果；它能容纳的信息总量上限就是<b>上下文窗口（Context Window）</b>，以 token 计量。
+  </div>
+  <div class="analogy">
+    💡 <b>类比：</b>上下文像一张"只能放在桌面上的办公桌"。模型工作时只能看桌上的文件：桌面就是上下文窗口，桌面大小就是窗口上限。桌下（训练数据）的东西它"学过"但看不见；想用就得把文件重新拿上来（放进上下文）。
+  </div>
+  <h3>关键词</h3>
+  <div class="keys"><span>Token</span><span>上下文窗口</span><span>系统提示 System Prompt</span><span>对话历史</span><span>上下文工程 Context Engineering</span><span>渐近遗忘</span></div>
+</section>
+
+<section id="mech">
+  <h2>机制原理</h2>
+  <h3>1. 上下文里装了什么？</h3>
+  <div class="diagram">
+    <svg viewBox="0 0 660 120" width="100%" style="max-width:640px">
+      <g font-size="13" font-family="Microsoft YaHei">
+        <rect x="10" y="20" width="640" height="70" rx="10" fill="#f2faf8" stroke="#0f766e"/>
+        <text x="330" y="14" text-anchor="middle" fill="#0f766e" font-weight="bold">一次请求的上下文（自上而下拼接）</text>
+        <rect x="30" y="38" width="140" height="36" rx="6" fill="#d9f0ec"/><text x="100" y="61" text-anchor="middle">系统提示</text>
+        <rect x="180" y="38" width="140" height="36" rx="6" fill="#e0f2fe"/><text x="250" y="61" text-anchor="middle">对话历史</text>
+        <rect x="330" y="38" width="140" height="36" rx="6" fill="#fef3c7"/><text x="400" y="61" text-anchor="middle">检索到的资料</text>
+        <rect x="480" y="38" width="150" height="36" rx="6" fill="#ede9fe"/><text x="555" y="61" text-anchor="middle">工具返回结果</text>
+      </g>
+    </svg>
+  </div>
+  <ol>
+    <li><b>Token 化：</b>所有文本先被切分成 token（词元）。窗口大小按 token 计：中文约 1 字 ≈ 1~2 token。超窗内容无法被本次推理看到。</li>
+    <li><b>注意力分配：</b>模型通过注意力机制"阅读"上下文。研究表明存在 <b>lost in the middle</b>：开头和结尾的信息利用得好，埋在中间的长内容容易被忽略。</li>
+    <li><b>无状态：</b>模型本身不记得上一次请求——所谓的"多轮记忆"是把历史对话重新放进上下文实现的。会话结束、或你开新窗口，上下文即消失。</li>
+    <li><b>上下文工程：</b>因为窗口有限、注意力有限，"往上下文里放什么、放多少、按什么顺序放"成为一种工程方法：压缩历史、摘要替代全文、检索相关片段（RAG）、把长期知识外置成文件按需读取。</li>
+  </ol>
+  <div class="card">✅ <b>为什么重要：</b>模型回答质量的上限，很大程度上由"上下文里有没有正确的信息"决定。它不知道的事，放不进上下文它就答不了。</div>
+</section>
+
+<section id="scene">
+  <h2>应用场景：长对话的上下文压缩</h2>
+  <p>在一个持续三小时的技术排障会话里，对话历史已积累 8 万 token，接近窗口上限，响应开始变慢、早期细节被"挤出"。</p>
+  <table>
+    <tr><th>做法</th><th>效果</th></tr>
+    <tr><td>把前两小时的内容压缩成 500 token 的摘要（关键结论 + 已尝试方案）</td><td>腾出窗口空间，关键信息保留</td></tr>
+    <tr><td>把完整的排查记录写入一个 <code>notes.md</code> 文件</td><td>细节不丢失，需要时按需读回</td></tr>
+    <tr><td>系统提示固定不动（角色、规则不变）</td><td>保持行为一致</td></tr>
+  </table>
+  <p>这就是"上下文工程"的典型操作：<b>不是被动地等窗口被塞满，而是主动管理"桌上放什么"。</b></p>
+</section>
+
+<section id="pitfalls">
+  <h2>常见误区与辨析</h2>
+  <table>
+    <tr><th style="width:45%">误区</th><th>正确理解</th></tr>
+    <tr>
+      <td><span class="wrong">上下文 = 模型的记忆，聊过它就一直记得</span></td>
+      <td><span class="right">上下文只在单次推理中存在。</span>"记得"靠的是每次把历史重新放入上下文。跨会话的持久记忆需要外部存储（文件、数据库）配合检索。</td>
+    </tr>
+    <tr>
+      <td><span class="wrong">窗口越大，模型记得越牢</span></td>
+      <td><span class="right">窗口大只保证"放得下"，不保证"看得重"。</span>由于 lost in the middle，塞满超长上下文反而可能漏掉关键信息。有效利用靠筛选和组织，而非硬塞。</td>
+    </tr>
+    <tr>
+      <td><span class="wrong">加大上下文可以替代微调</span></td>
+      <td><span class="right">两者解决不同问题。</span>上下文注入"临时知识"（这篇文档说了什么），微调改变"固有能力与风格"（始终按某格式输出）。频繁使用、体量巨大的稳定知识适合微调/训练；每次不同的动态信息适合上下文。</td>
+    </tr>
+  </table>
+</section>
+
+<section id="quiz">
+  <h2>自测题</h2>
+  <div class="quiz"><details><summary>Q1：列出一次典型 LLM API 请求中上下文的四个组成部分。</summary>
+    <p><b>参考答案：</b>系统提示（角色与规则）、对话历史（此前所有轮次）、检索内容（RAG 注入的资料）、工具返回结果。</p>
+    <p class="ref-note">漏项说明：漏掉"工具结果"或"检索内容"，说明还把大模型当成"纯聊天"，回到「机制原理」第 1 点。</p></details></div>
+  <div class="quiz"><details><summary>Q2：为什么"上下文窗口 200K token"不等于"模型能可靠利用 200K token 的信息"？</summary>
+    <p><b>参考答案：</b>窗口是容量上限，但注意力分配不均匀，存在 lost in the middle：埋在中间的信息召回率明显低于开头和结尾。所以长上下文需要配合摘要、结构化、关键信息前置等手段，而不是无脑堆料。</p></details></div>
+  <div class="quiz"><details><summary>Q3：你想让模型永远记住你公司的产品手册（300 页，内容基本不变），应该用上下文还是微调/知识库？为什么？</summary>
+    <p><b>参考答案：</b>用知识库 + 检索（RAG）：手册体量远超任何窗口，且内容稳定但查询各异——把相关章节检索后注入上下文最经济。微调不适合频繁更新的文档知识；全量塞上下文既贵又受 lost in the middle 影响。</p></details></div>
+  <div class="quiz"><details><summary>Q4：新开一个对话窗口，模型"忘了"上次说过的所有内容。请解释原因并给出一种低成本解决办法。</summary>
+    <p><b>参考答案：</b>模型无状态，上次的上下文没有随请求传入。低成本办法：把上次的关键结论写成一段摘要/笔记文件，新会话开始时粘贴或读入——即"用外部文件持久化 + 按需注入上下文"。</p></details></div>
+</section>
+
+<section id="refs">
+  <h2>参考资料</h2>
+  <ul class="refs">
+    <li><a href="https://arxiv.org/abs/2307.03172">Lost in the Middle: How Language Models Use Long Contexts</a> —— <span class="ref-note">理解"窗口大≠记得住"的关键论文</span></li>
+    <li><a href="https://www.anthropic.com/news/context-management">Anthropic：Context Management</a> —— <span class="ref-note">上下文工程的工程实践与编辑策略</span></li>
+    <li><a href="https://arxiv.org/abs/2005.11401">RAG 论文：Retrieval-Augmented Generation</a> —— <span class="ref-note">"检索注入上下文"这一范式的起源</span></li>
+  </ul>
+</section>
+
+<section id="me" class="personal">
+  <h2>个人理解（由学习者填写）</h2>
+  <p><b>我的理解（2026-09-10）：</b><span class="blank">待填写：用"办公桌"之外的另一个类比解释上下文……</span></p>
+  <p><b>我还没想明白的问题：</b><span class="blank">例如：摘要压缩时，怎么判断哪些信息"将来还用得上"？</span></p>
+</section>
+
+<footer>learning-material-generator · 概念：大模型的上下文 · 生成后请人工核对并补写个人理解</footer>
+</div>
+</body>
+</html>

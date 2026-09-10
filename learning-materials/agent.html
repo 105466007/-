@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>学习资料：Agent（智能体）</title>
+<style>
+  :root { --ink:#1a2332; --sub:#5a6a7e; --line:#e3e8ef; --brand:#2563eb; --soft:#f4f7fb; --warn:#b45309; --ok:#047857; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:"Microsoft YaHei","PingFang SC",sans-serif; color:var(--ink); background:#fafbfd; line-height:1.75; }
+  .wrap { max-width:860px; margin:0 auto; padding:32px 20px 80px; }
+  header.hero { background:linear-gradient(135deg,#2563eb,#1e40af); color:#fff; border-radius:14px; padding:36px 32px; margin-bottom:24px; }
+  header.hero h1 { font-size:30px; margin-bottom:8px; }
+  header.hero p { opacity:.92; font-size:15px; }
+  nav.toc { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin-bottom:28px; font-size:14px; }
+  nav.toc a { color:var(--brand); text-decoration:none; margin-right:16px; white-space:nowrap; line-height:2; }
+  section { background:#fff; border:1px solid var(--line); border-radius:12px; padding:26px 28px; margin-bottom:22px; }
+  h2 { font-size:21px; margin-bottom:14px; padding-left:12px; border-left:4px solid var(--brand); }
+  h3 { font-size:16px; margin:16px 0 8px; }
+  p, li { font-size:15px; }
+  ul, ol { padding-left:22px; margin:8px 0; }
+  .card { background:var(--soft); border-radius:8px; padding:14px 16px; margin:10px 0; }
+  .analogy { border-left:4px solid #8b5cf6; background:#f6f3ff; padding:12px 16px; border-radius:0 8px 8px 0; margin:12px 0; }
+  .keys span { display:inline-block; background:#e8effd; color:var(--brand); border-radius:999px; padding:3px 12px; margin:4px 6px 0 0; font-size:13px; }
+  table { width:100%; border-collapse:collapse; margin:12px 0; font-size:14px; }
+  th, td { border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top; }
+  th { background:var(--soft); }
+  .wrong { color:#b91c1c; font-weight:600; }
+  .right { color:var(--ok); font-weight:600; }
+  .diagram { background:var(--soft); border-radius:8px; padding:18px; margin:14px 0; text-align:center; }
+  .quiz { border:1px dashed #c7d2e3; border-radius:10px; padding:16px 18px; margin:12px 0; }
+  .quiz summary { cursor:pointer; font-weight:600; color:var(--brand); }
+  .refs li { margin:8px 0; }
+  .ref-note { color:var(--sub); font-size:13px; }
+  .personal { background:#fffbea; border:1px solid #f5e08a; border-radius:10px; padding:18px 20px; }
+  .personal textarea { width:100%; min-height:90px; border:1px solid #e8d988; border-radius:8px; padding:10px; font:inherit; margin-top:8px; }
+  .blank { color:var(--sub); font-style:italic; }
+  footer { text-align:center; color:var(--sub); font-size:13px; margin-top:30px; }
+  .en { color:var(--sub); font-size:13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <h1>Agent <span style="font-size:18px;opacity:.85">（智能体）</span></h1>
+  <p>个人学习资料 · 由 learning-material-generator 生成 · 2026-09-10</p>
+</header>
+
+<nav class="toc">
+  <a href="#goals">学习目标</a><a href="#core">核心概念</a><a href="#mech">机制原理</a><a href="#scene">应用场景</a><a href="#pitfalls">常见误区</a><a href="#quiz">自测题</a><a href="#refs">参考资料</a><a href="#me">个人理解</a>
+</nav>
+
+<section id="goals">
+  <h2>学习目标</h2>
+  <p>学完本页，你应该能够：</p>
+  <ol>
+    <li><b>能说出</b> Agent 的定义，并指出它与普通聊天机器人的两个本质区别</li>
+    <li><b>能画出</b> Agent 的基本循环（感知 → 思考 → 行动 → 观察）并解释每一环的作用</li>
+    <li><b>能区分</b> "工具调用" 与 "普通回答" 在 Agent 中的不同角色</li>
+    <li><b>能举例</b> 说明一个真实场景中 Agent 的自主决策体现在哪里</li>
+    <li><b>能辨析</b> "自主性高" 和 "不需要人类" 不是一回事</li>
+  </ol>
+</section>
+
+<section id="core">
+  <h2>核心概念</h2>
+  <div class="card">
+    <b>一句话定义：</b>Agent（智能体）是一个以大语言模型为"大脑"，能够<b>感知环境、自主规划、调用工具、根据反馈迭代</b>，从而完成给定目标的系统。
+    <span class="en">（Anthropic 的提法：Agentic systems = workflow + agent；本页讨论的是自主性更高的后者。）</span>
+  </div>
+  <div class="analogy">
+    💡 <b>类比：</b>普通聊天机器人像"电话客服"——你问一句它答一句，说完就结束；Agent 更像"实习生"——你给它一个目标，它自己查资料、动手操作、检查结果、发现问题再返工，直到把事情办完。
+  </div>
+  <h3>关键词</h3>
+  <div class="keys"><span>LLM 大脑</span><span>工具调用 Tool Use</span><span>自主规划</span><span>反馈循环</span><span>目标导向</span><span>人机协作</span></div>
+</section>
+
+<section id="mech">
+  <h2>机制原理</h2>
+  <p>一个典型的 LLM Agent 运行在四个环节的循环里：</p>
+  <div class="diagram">
+    <svg viewBox="0 0 640 130" width="100%" style="max-width:620px">
+      <defs><marker id="a" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#2563eb"/></marker></defs>
+      <g font-size="14" font-family="Microsoft YaHei">
+        <rect x="20"  y="40" width="120" height="50" rx="10" fill="#e8effd" stroke="#2563eb"/><text x="80"  y="70" text-anchor="middle" fill="#1a2332">① 感知</text>
+        <rect x="185" y="40" width="120" height="50" rx="10" fill="#ede9fe" stroke="#8b5cf6"/><text x="245" y="70" text-anchor="middle" fill="#1a2332">② 思考/规划</text>
+        <rect x="350" y="40" width="120" height="50" rx="10" fill="#dcfce7" stroke="#16a34a"/><text x="410" y="70" text-anchor="middle" fill="#1a2332">③ 行动</text>
+        <rect x="515" y="40" width="110" height="50" rx="10" fill="#fef3c7" stroke="#d97706"/><text x="570" y="70" text-anchor="middle" fill="#1a2332">④ 观察</text>
+        <line x1="140" y1="65" x2="183" y2="65" stroke="#2563eb" stroke-width="2" marker-end="url(#a)"/>
+        <line x1="305" y1="65" x2="348" y2="65" stroke="#2563eb" stroke-width="2" marker-end="url(#a)"/>
+        <line x1="470" y1="65" x2="513" y2="65" stroke="#2563eb" stroke-width="2" marker-end="url(#a)"/>
+        <path d="M570,90 C570,120 80,120 80,92" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#a)"/>
+        <text x="325" y="122" text-anchor="middle" fill="#5a6a7e" font-size="12">未完成目标 → 带着观察结果进入下一轮循环</text>
+      </g>
+    </svg>
+  </div>
+  <ol>
+    <li><b>感知（Perceive）：</b>接收任务目标和环境信息——用户指令、文件内容、上一步工具的返回结果，全部进入模型的上下文。</li>
+    <li><b>思考 / 规划（Reason &amp; Plan）：</b>LLM 根据上下文决定："下一步该做什么？是直接回答，还是调用某个工具？" 这一步常见的模式叫 ReAct（Reason + Act），即"先想再做"。</li>
+    <li><b>行动（Act）：</b>执行决策。如果是工具调用，就产生一段结构化的调用请求（如搜索、读写文件、执行代码），系统代为执行后把结果交回。</li>
+    <li><b>观察（Observe）：</b>把行动结果拼回上下文，LLM 判断：目标达成了吗？没有的话，问题出在哪，下一步怎么调整？回到 ①。</li>
+  </ol>
+  <div class="card">✅ <b>为什么需要循环？</b>单次问答无法处理"结果不可预期"的任务。循环让 Agent 具备了纠错能力——这正是它与"一次性生成"工作流（workflow）的核心差别。</div>
+</section>
+
+<section id="scene">
+  <h2>应用场景：客服工单自动处理</h2>
+  <p>某软件公司的技术支持团队用 Agent 处理工单，目标："解决用户工单 #4821：同步失败"。</p>
+  <table>
+    <tr><th>循环轮次</th><th>Agent 做了什么</th><th>体现的能力</th></tr>
+    <tr><td>第 1 轮</td><td>读取工单，调用「知识库检索」工具 → 未找到匹配方案</td><td>工具调用</td></tr>
+    <tr><td>第 2 轮</td><td>调用「查询用户日志」工具 → 发现是 token 过期导致 401</td><td>根据观察调整假设</td></tr>
+    <tr><td>第 3 轮</td><td>判断超出权限，调用「转人工」并附上诊断摘要</td><td>知道边界、求助而非硬撑</td></tr>
+  </table>
+  <p>关键在于：<b>"先查知识库、查不到再查日志、超出权限就转人工"</b>这些决策没有写死在代码里，而是 Agent 在循环中根据观察自主做出的。</p>
+</section>
+
+<section id="pitfalls">
+  <h2>常见误区与辨析</h2>
+  <table>
+    <tr><th style="width:45%">误区</th><th>正确理解</th></tr>
+    <tr>
+      <td><span class="wrong">Agent = 会聊天的机器人</span></td>
+      <td><span class="right">区别在于"能否行动"。</span>聊天机器人只输出文字；Agent 能调用工具改变外部世界（读写文件、发请求），并根据结果继续行动。</td>
+    </tr>
+    <tr>
+      <td><span class="wrong">Agent 完全自主，不需要人类</span></td>
+      <td><span class="right">自主性 ≠ 免监督。</span>生产级 Agent 通常设有人工审批点（如上例的"转人工"）、权限边界和执行上限。自主性指的是"中间步骤不需人逐步指挥"，而非"结果不需人负责"。</td>
+    </tr>
+    <tr>
+      <td><span class="wrong">用了工具的 AI 系统就是 Agent</span></td>
+      <td><span class="right">要看控制流在谁手里。</span>如果由代码写死"先调 A 再调 B"（workflow），那是流程编排；由 LLM 根据观察动态决定下一步调用什么，才更接近 Agent。</td>
+    </tr>
+  </table>
+</section>
+
+<section id="quiz">
+  <h2>自测题</h2>
+  <div class="quiz"><details><summary>Q1：用一句话说明 Agent 与普通聊天机器人的本质区别。</summary>
+    <p><b>参考答案：</b>Agent 以 LLM 为决策核心，能自主调用工具、根据环境反馈迭代行动直至完成目标；聊天机器人只能进行单轮或多轮的文字应答，无法对外部世界采取行动。</p>
+    <p class="ref-note">答错说明：若只答"更智能"，说明还没有抓住"行动 + 反馈循环"这两个关键词，回到「机制原理」。</p></details></div>
+  <div class="quiz"><details><summary>Q2：画出 Agent 的基本循环，并说明"观察"这一环为什么不可缺少。</summary>
+    <p><b>参考答案：</b>感知 → 思考/规划 → 行动 → 观察 →（回到感知）。观察把行动结果带回上下文，使 Agent 能判断任务是否完成、发现意外并纠错；没有观察，行动就是"盲跑"，错了也无法调整。</p></details></div>
+  <div class="quiz"><details><summary>Q3：某系统按固定顺序"先翻译、再摘要、最后存库"，每步调用一次 LLM。它是 Agent 吗？为什么？</summary>
+    <p><b>参考答案：</b>不是（它是 LLM workflow / 流水线）。因为每一步的执行顺序由代码写死，LLM 没有根据中间结果自主决定下一步的权限。判断标准是"控制流在代码手里还是在模型手里"。</p></details></div>
+  <div class="quiz"><details><summary>Q4："给 Agent 越多的自主权越好"——这句话对吗？</summary>
+    <p><b>参考答案：</b>不对。自主权应与任务风险和可验证性匹配：低风险、易验证的任务可以高自主；高风险（花钱、删数据、对外发送）的任务应设置人工审批。上面的工单例子里"转人工"就是自主地承认边界。</p></details></div>
+</section>
+
+<section id="refs">
+  <h2>参考资料</h2>
+  <ul class="refs">
+    <li><a href="https://www.anthropic.com/research/building-effective-agents">Anthropic：Building Effective Agents</a> —— <span class="ref-note">对 workflow 与 agent 的区分最权威，适合精读"何时该用 Agent"</span></li>
+    <li><a href="https://arxiv.org/abs/2210.03629">ReAct: Synergizing Reasoning and Acting in Language Models</a> —— <span class="ref-note">"思考-行动"循环的原始论文，理解机制原理的理论来源</span></li>
+    <li><a href="https://prompt-engineering-guide.github.io/prompt-engineering-for-developers/">Prompt Engineering Guide</a> —— <span class="ref-note">工具调用（Function Calling）的工程实践参考</span></li>
+  </ul>
+</section>
+
+<section id="me" class="personal">
+  <h2>个人理解（由学习者填写）</h2>
+  <p><b>我的理解（2026-09-10）：</b><span class="blank">待填写：用自己的话解释 Agent 是什么，以及它最让你意外的特点……</span></p>
+  <p><b>我还没想明白的问题：</b><span class="blank">例如：Agent 的循环如果一直无法达成目标，谁来决定"放弃"？</span></p>
+</section>
+
+<footer>learning-material-generator · 概念：Agent · 生成后请人工核对并补写个人理解</footer>
+</div>
+</body>
+</html>
